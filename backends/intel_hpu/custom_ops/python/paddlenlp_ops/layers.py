@@ -83,6 +83,28 @@ class Fused_Rms_Qkv_Rope_v3(paddle.nn.Layer):
         return query_states, kv_states
 
 
+class Fused_Rms_Qkv_Rope_t(paddle.nn.Layer):
+    def __init__(self, ln_scales, qkv_weights, epsilon, head_dim, num_head):
+        super().__init__()
+        self.ln_scales = ln_scales
+        self.qkv_weights = qkv_weights
+        self.epsilon = epsilon
+        self.head_dim = head_dim
+        self.num_head = num_head
+
+    def forward(self, i, src, rotary_embs):
+        query_states, kv_states = fused_rms_qkv_rope_t(
+            src,
+            self.ln_scales[i],
+            self.qkv_weights[i],
+            rotary_embs,
+            self.epsilon,
+            self.head_dim,
+            self.num_head,
+        )
+        return query_states, kv_states
+
+
 class Fused_Sdpa_Proj(paddle.nn.Layer):
     def __init__(self, scaling_factor, linear_weights):
         super().__init__()
@@ -220,6 +242,49 @@ class Fused_Rms_Mlp(paddle.nn.Layer):
             self.epsilon,
         )
         return fused_rms_mlp_out
+
+
+class Prepare_Block_Metadata(paddle.nn.Layer):
+    def __init__(self, block_size):
+        super().__init__()
+        self.block_size = block_size
+
+    def forward(
+        self, input_ids, rotary_embs, block_tables, seq_lens_encoder, seq_lens_decoder
+    ):
+        (
+            ids_remove_padding,
+            rope_emb,
+            block_groups,
+            block_list,
+            block_indices,
+            block_offsets,
+            block_mapping,
+            attention_mask,
+            batch_ids,
+            is_prompt,
+        ) = prepare_block_metadata(
+            input_ids,
+            rotary_embs,
+            block_tables,
+            seq_lens_encoder,
+            seq_lens_decoder,
+            self.block_size,
+            paddle.get_default_dtype(),
+        )
+
+        return (
+            ids_remove_padding,
+            rope_emb,
+            block_groups,
+            block_list,
+            block_indices,
+            block_offsets,
+            block_mapping,
+            attention_mask,
+            batch_ids,
+            is_prompt,
+        )
 
 
 def rebuild_padding(multi_block_output, cum_offsets, seq_lens, input_ids):
