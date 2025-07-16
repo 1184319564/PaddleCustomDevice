@@ -1,5 +1,4 @@
-// 2024 - Modified by MetaX Integrated Circuits (Shanghai) Co., Ltd. All Rights
-// Reserved. Copyright (c) 2025 PaddlePaddle Authors. All Rights Reserved.
+// Copyright (c) 2025 PaddlePaddle Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,26 +13,22 @@
 // limitations under the License.
 
 #include "paddle/phi/core/kernel_registry.h"
-#include "paddle/phi/kernels/gaussian_kernel.h"
+#include "paddle/phi/kernels/funcs/gather.cu.h"
+#include "paddle/phi/kernels/gather_kernel.h"
 
-PD_CUSTOM_KERNEL_REGISTER(gaussian,
+PD_CUSTOM_KERNEL_REGISTER(gather,
                           metax_gpu,
                           ALL_LAYOUT,
-                          phi::GaussianKernel,
-                          phi::dtype::float16,
-                          phi::dtype::bfloat16,
+                          phi::GatherKernel,
                           float,
                           double,
-                          phi::dtype::complex<float>,
-                          phi::dtype::complex<double>) {}
-
-PD_CUSTOM_KERNEL_REGISTER(gaussian_inplace,
-                          metax_gpu,
-                          ALL_LAYOUT,
-                          phi::GaussianInplaceKernel,
+                          int64_t,
+                          int,
+                          int16_t,
+                          bool,
+                          uint8_t,
+                          int8_t,
                           phi::dtype::float16,
                           phi::dtype::bfloat16,
-                          float,
-                          double,
                           phi::dtype::complex<float>,
                           phi::dtype::complex<double>) {}
